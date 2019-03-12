@@ -1,0 +1,197 @@
+#include <iostream> 
+#include <algorithm> // библиотека для поиска максимального и минимального расстояния
+#include <fstream> 
+
+#define INF 101 // INF БУДЕТ РАВНО 101
+
+using namespace std;
+
+struct ver {
+	int name; 
+	int path;
+}vertex[100];
+ver minVertex[100];
+
+
+int v, e;
+int **graph;
+int minS = 100, maxS = -1;// присваимваем такие значения, т.к. минимальное значение никогда не будет больше 100, т.к. 101 это уже неопределенность
+void chainsSearch(int, int);
+void DFSchain(int, int, int*, int, int);
+int v1(int);
+int v2(int);
+
+
+int vertexx(int** matrix, int numberOfVert) {
+	int count[100];
+	int compare = -1;
+	for (int i = 0; i < 100; i++) {
+		count[i] = 0;
+	}
+
+	for (int i = 0; i < numberOfVert; i++) {
+		for (int j = 0; j < numberOfVert; j++) {
+			count[i] += matrix[i][j];
+		}
+	}
+	for (int i = 0; i < numberOfVert; i++) {
+		vertex[i].name = i;
+		vertex[i].path = count[i];
+	}
+	int numberMin = -1;
+	int minPath = vertex[0].path;
+	for (int i = 0; i < numberOfVert; i++)
+	{
+		if (vertex[i].path <= minPath)
+		{
+			minVertex[numberMin].path = vertex[i].path;
+			minVertex[numberMin].name = vertex[i].name;
+			numberMin++;
+			minPath = vertex[i].path;
+		}
+	}
+	
+	return numberMin;
+}
+
+ 
+void originalFloydWarshall(int **matrix, int numberOfVert) {
+	
+	for (int k = 0; k < numberOfVert; k++) {
+		for (int i = 0; i < numberOfVert; i++) {
+			for (int j = 0; j < numberOfVert; j++) {
+				matrix[i][j] = min(matrix[i][j], matrix[i][k] + matrix[k][j]);
+			}
+		}
+	}
+	return;
+}
+
+int main() {
+	setlocale(LC_ALL, "ru");
+	ifstream file("matrix.txt");
+	int numberOfVert;
+	file>> numberOfVert;
+	int **matrix = (int**)malloc(sizeof(int)*numberOfVert);
+	for (int i = 0; i < numberOfVert; i++)
+	{
+		matrix[i] = (int *)malloc(sizeof(int) * numberOfVert);
+	}
+
+
+
+	 
+	for (int i = 0; i < numberOfVert; i++) {
+		for (int j = 0; j < numberOfVert; j++) {
+			file>> matrix[i][j];
+		}
+	}
+	file.close();
+	originalFloydWarshall(matrix, numberOfVert);
+	int numberCV = vertexx(matrix, numberOfVert);
+	v = numberOfVert;
+	int e = 0;
+	for (int i = 0; i < v; i++) {
+		for (int j = 0; j < v; j++) {
+			if (matrix[i][j] == 1)
+			{
+				e++;
+			}
+
+		}
+	}
+	e = e / 2;
+	graph = new int*[v];
+	for (int i = 0; i < v; i++)
+		graph[i] = new int[e];
+	for (int i = 0; i < v; i++) {
+		for (int j = 0; j < e; j++) {
+			graph[i][j] = 0;
+		}
+	}
+	int k = 0;
+	for (int i = 0; i < v; i++) {
+		for (int j = 0; j < v; j++) {
+			if (matrix[i][j + i] == 1) {
+				graph[i][k] = 1;
+				graph[j + i][k] = 1;
+				k++;
+			}
+		}
+	}
+	for (int i = 0; i < v; i++) {
+		for (int j = 0; j < e; j++) {
+			cout << graph[i][j] << " ";
+		}
+		cout << endl;
+	}
+	chainsSearch(e, numberCV);
+	cout << "Максимальное расстояние: " << endl;
+	cout<<maxS - 1<<endl;
+	cout << "Среднее расстояние: " << endl;
+	cout << (double)((maxS - 1)+( minS - 1))/2 <<endl;
+	system("pause");
+	return 0;
+}
+
+
+
+void chainsSearch(int edges, int countCV) {
+	int *color = new int[v]; 	for (int i = 0; i < countCV - 1; i++) {
+		for (int j = i + 1; j < countCV; j++)
+		{
+			for (int k = 0; k < v; k++) {
+				color[k] = 1;
+			}
+		
+			DFSchain(minVertex[i].name, minVertex[j].name, color, 1, edges);
+			
+		}
+	}
+}
+void DFSchain(int u, int endV, int *color, int s, int e) {
+
+	if (u != endV)
+		color[u] = 2;
+	else
+	{
+		if (s > maxS) {
+			maxS = s;
+		}
+		if (s < minS) {
+			minS = s;
+		}
+		return;
+	}
+	for (int w = 0; w < e; w++)
+	{
+		if (color[v2(w)] == 1 && v1(w) == u)
+		{
+			DFSchain(v2(w), endV, color, s + 1,e);
+			color[v2(w)] = 1;
+		}
+		else if (color[v1(w)] == 1 && v2(w) == u)
+		{
+			DFSchain(v1(w), endV, color, s + 1, e);
+			color[v1(w)] = 1;
+		}
+	}
+}
+int v1(int w) {
+	for (int i = 0; i<v; i++) {
+		if (graph[i][w] != 0) {
+			w = i;
+			break;
+		}
+	}
+	return w;
+}
+int v2(int w) {
+	for (int i = v - 1; i >= 0; i--) {
+		if (graph[i][w] != 0) {
+			w = i;
+			break;
+		}
+	}
+	return w;
+}
