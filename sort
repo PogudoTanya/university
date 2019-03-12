@@ -1,0 +1,284 @@
+#pragma warning(disable:4996)
+#include<iostream>
+#include<string>
+#include <iomanip>
+#include<ctime>
+#include<cstdio>
+#include <fstream>
+#include <io.h>
+using namespace std;
+
+struct Data
+{
+	char data[30];
+	char city[20];
+	char cityTelNumber[20];
+	char abonentTelNumber[20];
+	int tarif;
+	long  talkTime; 
+	int kod;
+}stud[100];
+
+int menu();
+void newfile(char*);
+void zapis_v_fail(char*, int*);
+void vivod_na_consol(char*);
+void editing(char*, int*);
+void lineiny_poisk(char*, int*);
+void pr_vbr(Data*, int);
+void Quick_sort(Data*, int, int);
+void IDZ(char*, int );
+
+int main()
+{
+	FILE*FZ;
+	setlocale(LC_ALL, "ru");
+	int kol=0;
+
+	char file[20];
+	cout << "Введите название файла:";
+	cin >> file;
+	ofstream fout;
+	fout.open(file, ofstream::app);
+	int size = sizeof(Data);
+	FZ = fopen(file, "rb");
+	int D_f = fileno(FZ);
+	int len = filelength(D_f);
+	kol = len / size;
+	while (true) {
+		switch (menu()) {
+		case 1: newfile(file); break;
+		case 2: zapis_v_fail(file, &kol); break;
+		case 3: vivod_na_consol(file); break;
+		case 4: editing(file, &kol); break;
+		case 5: lineiny_poisk(file, &kol); break;
+		case 6:pr_vbr(stud, kol); break;
+		case 7:Quick_sort(stud, 0, kol - 1);
+		
+			for (int i = 0; i < kol; i++)
+			{
+				cout << stud[i].data << "\t" << stud[i].city << "\t" << stud[i].cityTelNumber << "\t" << stud[i].abonentTelNumber << "\t" << stud[i].tarif << "\t" << stud[i].talkTime << "\t" << stud[i].kod << "\t" << endl;
+
+			}break;
+		case 8:IDZ(file, kol); break;
+		case 9: return 0;
+		}
+	}
+	system("pause");
+	return 0;
+}
+
+int menu()
+{
+	int i;
+	cout << "VIBERITE:" << endl;
+	cout << "1. Создание нового файла" << endl;
+	cout << "2. Ввод информации в файл" << endl;
+	cout << "3. Запись информации из файла" << endl;
+	cout << "4. Редактирование: добавление информации в файл " << endl;
+	cout << "5. Линейный поиск в файле" << endl;
+	cout << "6. Сортировка файла методами прямого выбора" << endl;
+	cout << "7. Сортировка массива (файла) методом QuickSort" << endl;
+	cout << "8. Решение ИДЗ" << endl;
+	cout << "9. Выход" << endl;
+	cin >> i;
+	return i;
+}
+
+void newfile(char*file) {
+	ofstream fout;
+	fout.open(file, ofstream::app);
+	if (!fout.is_open()) {
+		cout << "Ошибка открытия файла!";
+	}
+	else {
+		cout << "Файл создан!" << endl;
+	}
+	fout.close();
+}
+
+void zapis_v_fail(char*file, int *kol) {
+	ofstream fout(file, ofstream::app | ios::binary);
+	if (!fout.is_open()) {
+		cout << "Ошибка открытия файла!";
+	}
+	else {
+
+		int  i;
+
+		cout << "Введите количество звонков:";
+		cin >> *kol;
+		for (i = 0; i < *kol; i++) {
+			cout << "Введите дату разговора: " << endl;
+			cin >> stud[i].data;
+			cout << "Введите название города: " << endl;
+			cin >> stud[i].city;
+			cout << "Введите номер телефона в городе: " << endl;
+			cin >> stud[i].cityTelNumber;
+			cout << "Введите номер телефона абонента: " << endl;
+			cin >> stud[i].abonentTelNumber;
+			cout << "Введите тариф: " << endl;
+			cin >> stud[i].tarif;
+			cout << "Введите время разговора: " << endl;
+			cin >> stud[i].talkTime;
+			cout << "Введите код города: " << endl;
+			cin >> stud[i].kod;
+			cout << "************************************" << endl;
+			fout.write((char*)&stud[i], sizeof(Data));
+
+		}
+
+	}
+	fout.close();
+}
+
+
+
+void vivod_na_consol(char*file) {
+	ifstream fin(file, ios::binary);
+	if (!fin.is_open()) {
+		cout << "Ошибка открытия файла!" << endl;
+	}
+	else {
+		cout << "Файл открыт!" << endl;
+		int i = 1;
+		while (fin)
+		{
+			fin.read((char*)&stud[i], sizeof(Data));
+			if (fin.eof()) {
+				break;
+			} cout << i << ". ";
+			cout << stud[i].data << " " << stud[i].city << " " << stud[i].cityTelNumber << "\t" << "\t" << "\t" << stud[i].abonentTelNumber << "\t" << stud[i].tarif << "\t" << stud[i].kod << "\t" << stud[i].talkTime << "\t" << endl;
+			i++;
+		}
+		fin.close();
+	}
+}
+
+
+void editing(char*file, int *kol) {
+	ofstream fout;
+	fout.open(file, ofstream::app);
+	int  i, num;
+
+	cout << "Введите количество звонков" << endl;
+	cin >> num;
+
+
+	for (i = 0; i < num; i++) {
+		cout << "Введите дату разговора: " << endl;
+		cin >> stud[i].data;
+		cout << "Введите название города: " << endl;
+		cin >> stud[i].city;
+		cout << "Введите номер телефона в городе: " << endl;
+		cin >> stud[i].cityTelNumber;
+		cout << "Введите номер телефона абонента: " << endl;
+		cin >> stud[i].abonentTelNumber;
+		cout << "Введите тариф: " << endl;
+		cin >> stud[i].tarif;
+		cout << "Введите время разговора: " << endl;
+		cin >> stud[i].talkTime;
+		cout << "Введите код города: " << endl;
+		cin >> stud[i].kod;
+		cout << "************************************" << endl;
+		fout.write((char*)&stud[i], sizeof(Data));
+	}
+
+	*kol += num;
+	fout.close();
+}
+
+void pr_vbr(Data *stud, int kol)
+{
+	for (int i = 0; i < kol - 1; i++) {
+		int m = i;
+		for (int j = i + 1; j < kol; j++)
+		{
+			if (stud[m].talkTime > stud[j].talkTime)
+			{
+				m = j;
+			}
+		}
+		Data buf = stud[i];
+		stud[i] = stud[m];
+		stud[m] = buf;
+	}
+	for (int i = 0; i < kol; i++)
+	{
+		cout << stud[i].data << "\t" << stud[i].city << "\t" << stud[i].cityTelNumber << "\t" << stud[i].abonentTelNumber << "\t" << stud[i].tarif << "\t" << stud[i].talkTime << "\t" << stud[i].kod << "\t" << endl;
+	}
+}
+
+
+void lineiny_poisk(char*file, int *kol)
+{
+	int temp_time;
+	cout << "Введите время разговора ";
+	cin >> temp_time;
+	cout << endl;
+	for (int i = 0; i < *kol; i++) {
+		if (stud[i].talkTime == temp_time) cout << "По телефону разговаривали следующие абонементы: " << stud[i].abonentTelNumber << "   ";
+	}
+}
+
+
+void Quick_sort(Data*stud, int l, int r)
+
+{
+	int kol = r + 1;
+	int i = l;
+	int j = r;
+	double sred = stud[(r + l) / 2].talkTime;
+	do {
+		while (stud[i].talkTime < sred)
+		{
+			++i;
+		}
+		while (stud[j].talkTime > sred)
+		{
+			--j;
+		}
+		if (i <= j)
+		{
+			Data buf = stud[i];
+			stud[i] = stud[j];
+			stud[j] = buf;
+			++i;
+			--j;
+
+		}
+	} while (i <= j);
+	if (i < r)
+	{
+		Quick_sort(stud, i, r);
+
+	}
+	if (j < l)
+	{
+		Quick_sort(stud, l, j);
+
+	}
+}
+
+void IDZ(char*file, int kol)
+{
+
+	int tarif = 0;
+	char vubrCity[20];
+	long  time = 0, totalTime = 0;
+	double sum = 0.0;
+	
+	for (int i = 0; i < kol; i++)
+	{
+			time = stud[i].talkTime;
+			tarif = stud[i].tarif;
+			sum += (time / 60.0) * tarif;
+			totalTime += time;
+			cout << "\nОбщая информация о  " << stud[i].city << ":\n" << endl;
+			cout << "Время разговора : " << totalTime << " seconds" << endl;
+			cout << "Расчет: " << sum << endl;
+	}
+
+}
+
+
